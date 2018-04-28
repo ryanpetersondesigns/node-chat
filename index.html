@@ -1,0 +1,68 @@
+<!doctype html>
+<html class="h-100">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js" ></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <body class="h-75">
+        <div class="container h-50">
+            <div class="jumbotron rounded-0 mb-0">
+                <br>
+                <h1 class="display-4">Send Message</h1>
+            </div>
+            <div id="messagewrapper" class="border border-light h-75 px-1" style="overflow-y:scroll;">
+                <div id="messages">
+                     
+                </div>
+            </div>
+            <div class="jumbotron rounded-0 mb-0">
+                <input id="name" type="text" class="form-control" placeholder="Name">
+                <br>
+                <br>
+                <textarea id="message" type="text" class="form-control" placeholder="Message"></textarea>
+                <br>
+                <br>
+                <button id="send" class="btn btn-success">Send</button>
+            </div>
+        </div>
+    </body>
+    <script>
+        var socket=io();
+        $(() => {
+            $("#send").click(()=>{
+                var message={ name: $('#name').val(), message: $('#message').val() };
+                postMessages(message);
+            });
+            getMessages();
+        });
+
+        socket.on('message', addMessages);
+
+        $('#message').keydown(function(event){
+            if(event.keyCode==13&&!event.altKey&&!event.ctrlKey&&!event.shiftKey){
+                event.preventDefault();
+                var message = { name: $('#name').val(), message: $('#message').val() };
+                postMessages(message);
+            }
+        });
+        function addMessages(message){
+            $("#messages").append(`<h4>${message.name}</h4><p>${message.message}</p>`);
+        }
+        function getMessages() {
+            $.get('http://localhost:1994/messages', (data)=>{
+                data.forEach(addMessages);
+            });
+        }
+        function postMessages(message) {
+            sendAnimate();
+            $.post('http://localhost:1994/messages', message);
+        }
+        function sendAnimate(){
+            $('#message').fadeOut('slow', function () {
+                $('#message').val('');
+                $('#message').toggle();
+            });
+        }
+    </script>    
+</html>
